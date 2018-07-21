@@ -49,9 +49,9 @@ func Silent() *Verification {
 
 func (v *Verification) String() string {
 	if v.err == nil {
-		return "Verification success"
+		return "verification success"
 	}
-	return "Verification failure: " + v.err.Error()
+	return "verification failure: " + v.err.Error()
 }
 
 func (v *Verification) GetError() error {
@@ -62,7 +62,7 @@ func (v *Verification) GetError() error {
 func (v *Verification) PanicOnError() {
 	v.checked = true
 	if v.err != nil {
-		panic("Verification failure: " + v.err.Error())
+		panic("verification failure: " + v.err.Error())
 	}
 }
 
@@ -117,8 +117,8 @@ func printWarningOnUncheckedVerification(v *Verification) {
 		return
 	}
 	writer := *(*io.Writer)(atomic.LoadPointer(&verificationsWriter))
-	fmt.Fprintf(writer, "[ERROR] found verifier with unhandled error: %s\n", v.err.Error())
-	fmt.Fprint(writer, "verifier was created here:\n")
+	fmt.Fprintf(writer, "[ERROR] found verification with unhandled error: %s\n", v.err.Error())
+	fmt.Fprint(writer, "verification was created here:\n")
 	v.printCreationStack(writer)
 }
 

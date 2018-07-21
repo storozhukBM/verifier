@@ -98,7 +98,7 @@ func TestVerifier_negative_unhandled_error(t *testing.T) {
 	if len(resultBuffer) == 0 {
 		t.Fatal("unhandled error not found")
 	}
-	if !strings.HasPrefix(resultBuffer, "[ERROR] found verifier with unhandled error: empty string is not nil") {
+	if !strings.HasPrefix(resultBuffer, "[ERROR] found verification with unhandled error: empty string is not nil") {
 		t.Fatalf("unexpected verifier buffer: %s", resultBuffer)
 	}
 }
