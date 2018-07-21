@@ -11,19 +11,14 @@ import (
 
 var verificationsWriter = unsafe.Pointer(&os.Stdout)
 
-func SetUnhandledVerificationsWriter(w io.Writer) {
-	newWriter := unsafe.Pointer(&w)
-	atomic.StorePointer(&verificationsWriter, newWriter)
-}
-
-type Verification struct {
-	creationStack []uintptr
-	err           error
-	checked       bool
-}
-
-func New() *Verification {
-	v := &Verification{
+// New creates verification instance (recommended).
+// It tracks verification state.
+// If you forget to check internal error, using Verify.GetError or Verify.PanicOnError methods,
+// it will write error message to UnhandledVerificationsWriter (default: os.Stdout).
+// This mechanism will help you track down possible unhandled verifications.
+// If you don't wan't to track anything, create verifier with Silent() function.
+func New() *Verify {
+	v := &Verify{
 		creationStack: captureCreationStack(),
 		checked:       false,
 	}
@@ -31,8 +26,24 @@ func New() *Verification {
 	return v
 }
 
-func Offensive() *Verification {
-	v := &Verification{
+// Creates verification instance without any tracking features.
+// It's silent about unhandled verifications.
+func Silent() *Verify {
+	v := &Verify{
+		checked: false,
+	}
+	return v
+}
+
+// Offensive creates verification instance (not-recommended).
+// It tracks verification state and stops application process when founds unchecked verification.
+// If you forget to check internal error, using Verify.GetError or Verify.PanicOnError methods,
+// it will write error message to UnhandledVerificationsWriter (default: os.Stdout) and WILL STOP YOUR PROCESS.
+// Created for people who adopt offensive programming(https://en.wikipedia.org/wiki/Offensive_programming).
+// This mechanism will help you track down possible unhandled verifications.
+// USE IT WISELY.
+func Offensive() *Verify {
+	v := &Verify{
 		creationStack: captureCreationStack(),
 		checked:       false,
 	}
@@ -40,44 +51,22 @@ func Offensive() *Verification {
 	return v
 }
 
-func Silent() *Verification {
-	v := &Verification{
-		checked: false,
-	}
-	return v
+// Verify represents verification instance.
+// All checks can be performed on it using Verify.That or Verify.Predicate functions.
+// After one failed check all others won't count and predicates won't be evaluated.
+// Use Verify.GetError function to check if there where any during verification process.
+type Verify struct {
+	creationStack []uintptr
+	err           error
+	checked       bool
 }
 
-func (v *Verification) String() string {
-	if v.err == nil {
-		return "verification success"
-	}
-	return "verification failure: " + v.err.Error()
-}
-
-func (v *Verification) GetError() error {
-	v.checked = true
-	return v.err
-}
-
-func (v *Verification) PanicOnError() {
-	v.checked = true
-	if v.err != nil {
-		panic("verification failure: " + v.err.Error())
-	}
-}
-
-func (v *Verification) Predicate(predicate func() bool, message string, args ...interface{}) {
-	v.checked = false
-	if v.err != nil {
-		return
-	}
-	if predicate() {
-		return
-	}
-	v.err = fmt.Errorf(message, args...)
-}
-
-func (v *Verification) That(positiveCondition bool, message string, args ...interface{}) {
+// That verifies condition passed as first argument.
+// If positiveCondition == true, verification will proceed for other checks.
+// If positiveCondition == false, internal state will be filled with error,
+// using message argument as format in fmt.Errorf(message, args...).
+// After the first failed verification all others won't count and predicates won't be evaluated.
+func (v *Verify) That(positiveCondition bool, message string, args ...interface{}) {
 	v.checked = false
 	if v.err != nil {
 		return
@@ -88,7 +77,46 @@ func (v *Verification) That(positiveCondition bool, message string, args ...inte
 	v.err = fmt.Errorf(message, args...)
 }
 
-func (v *Verification) printCreationStack(writer io.Writer) {
+// That evaluates predicate passed as first argument.
+// If predicate() == true, verification will proceed for other checks.
+// If predicate() == false, internal state will be filled with error,
+// using message argument as format in fmt.Errorf(message, args...).
+// After the first failed verification all others won't count and predicates won't be evaluated.
+func (v *Verify) Predicate(predicate func() bool, message string, args ...interface{}) {
+	v.checked = false
+	if v.err != nil {
+		return
+	}
+	if predicate() {
+		return
+	}
+	v.err = fmt.Errorf(message, args...)
+}
+
+// GetError extracts error from internal state to check if there where any during verification process.
+func (v *Verify) GetError() error {
+	v.checked = true
+	return v.err
+}
+
+// PanicOnError panics if there is an error in internal state.
+// Created for people who adopt offensive programming(https://en.wikipedia.org/wiki/Offensive_programming).
+func (v *Verify) PanicOnError() {
+	v.checked = true
+	if v.err != nil {
+		panic("verification failure: " + v.err.Error())
+	}
+}
+
+// String represents verification and it's status as string type.
+func (v *Verify) String() string {
+	if v.err == nil {
+		return "verification success"
+	}
+	return "verification failure: " + v.err.Error()
+}
+
+func (v *Verify) printCreationStack(writer io.Writer) {
 	frames := runtime.CallersFrames(v.creationStack)
 	for {
 		frame, more := frames.Next()
@@ -99,7 +127,7 @@ func (v *Verification) printCreationStack(writer io.Writer) {
 	}
 }
 
-func failProcessOnUncheckedVerification(v *Verification) {
+func failProcessOnUncheckedVerification(v *Verify) {
 	if v.checked {
 		return
 	}
@@ -107,7 +135,7 @@ func failProcessOnUncheckedVerification(v *Verification) {
 	os.Exit(1)
 }
 
-func printWarningOnUncheckedVerification(v *Verification) {
+func printWarningOnUncheckedVerification(v *Verify) {
 	if v.checked {
 		return
 	}
@@ -121,4 +149,10 @@ func captureCreationStack() []uintptr {
 	var rawStack [32]uintptr
 	numberOfFrames := runtime.Callers(3, rawStack[:])
 	return rawStack[:numberOfFrames]
+}
+
+// SetUnhandledVerificationsWriter gives you ability to override UnhandledVerificationsWriter (default: os.Stdout).
+func SetUnhandledVerificationsWriter(w io.Writer) {
+	newWriter := unsafe.Pointer(&w)
+	atomic.StorePointer(&verificationsWriter, newWriter)
 }
