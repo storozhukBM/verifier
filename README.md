@@ -44,13 +44,13 @@ if verify.GetError() != nil {
 It also can help you to track down unchecked verifiers when you forget to do it 
 ```go
 verify := verifier.New()
-verify.That(user.HashPermission(READ, ACCOUNTS), "use has no permission to read accounts")
+verify.That(user.HashPermission(READ, ACCOUNTS), "user has no permission to read accounts")
 ```
 
 In this example we have forgot to check verifier using verify.GetError() and
 after some time you'll see in your log such error:
 ```
-[ERROR] found unhandled verification: verification failure: empty string is not nil
+[ERROR] found unhandled verification: verification failure: user has no permission to read accounts
 		verification was created here:
 		github.com/storozhukBM/verifier_test.TestVerifier
 			/Users/bogdanstorozhuk/verification-lib/src/github.com/storozhukBM/verifier/verifier_test.go:91
