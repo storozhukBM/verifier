@@ -16,31 +16,29 @@ This small library is built on error handling pattern described by Rob Pike in G
 
 It helps you quickly transform code from this
 ```go
-    if person == nil {
-    	panic("person can't be nil") // this state is impossible, if happens we should fail fast.
-    }
-    if person.name == "" {
-        return nil, errors.New("name can't be empty")
-    }
-    if person.age < 21 {
-    	return nil, fmt.Errorf("age should be 21 or higher, but yours: %d", p.age)
-    }
-    if !person.hasLicense {
-    	return nil, errors.New("customer should have license")
-    }
+if person == nil {
+	return nil, errors.New("person can't be nil")
+}
+if len(person.name) == "" {
+	return nil, errors.New("name can't be empty")
+}
+if person.age < 21 {
+	return nil, fmt.Errorf("age should be 21 or higher, but yours: %d", p.age)
+}
+if !person.hasLicense {
+	return nil, errors.New("customer should have license")
+}
 ```
 to this
 ```go
-	verify := verifier.New()
-	verify.That(person != nil, "person can't be nil")
-	verify.PanicOnError() // use if you don't want to tolerate such errors
-	
-	verify.That(person.name != "", "name can't be empty")
-	verify.That(person.age >= 21, "age should be 21 or higher, but yours: %d", p.age)
-	verify.That(person.hasLicense, "customer should have license")
-	if verify.GetError() != nil {
-		return verify.GetError()
-	}
+verify := verifier.New()
+verify.That(person != nil, "person can't be nil")
+verify.That(person.name != "", "name can't be empty")
+verify.That(person.age >= 21, "age should be 21 or higher, but yours: %d", p.age)
+verify.That(person.hasLicense, "customer should have license")
+if verify.GetError() != nil {
+	return nil, verify.GetError()
+}
 ```
 
 
