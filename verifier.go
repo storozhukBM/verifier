@@ -16,14 +16,14 @@ func SetUnhandledVerificationsWriter(w io.Writer) {
 	atomic.StorePointer(&verificationsWriter, newWriter)
 }
 
-type verification struct {
+type Verification struct {
 	creationStack []uintptr
 	err           error
 	checked       bool
 }
 
-func New() *verification {
-	v := &verification{
+func New() *Verification {
+	v := &Verification{
 		creationStack: captureCreationStack(),
 		checked:       false,
 	}
@@ -31,8 +31,8 @@ func New() *verification {
 	return v
 }
 
-func Offensive() *verification {
-	v := &verification{
+func Offensive() *Verification {
+	v := &Verification{
 		creationStack: captureCreationStack(),
 		checked:       false,
 	}
@@ -40,33 +40,33 @@ func Offensive() *verification {
 	return v
 }
 
-func Silent() *verification {
-	v := &verification{
+func Silent() *Verification {
+	v := &Verification{
 		checked: false,
 	}
 	return v
 }
 
-func (v *verification) String() string {
+func (v *Verification) String() string {
 	if v.err == nil {
-		return "verification success"
+		return "Verification success"
 	}
-	return "verification failure: " + v.err.Error()
+	return "Verification failure: " + v.err.Error()
 }
 
-func (v *verification) GetError() error {
+func (v *Verification) GetError() error {
 	v.checked = true
 	return v.err
 }
 
-func (v *verification) PanicOnError() {
+func (v *Verification) PanicOnError() {
 	v.checked = true
 	if v.err != nil {
-		panic("verification failure: " + v.err.Error())
+		panic("Verification failure: " + v.err.Error())
 	}
 }
 
-func (v *verification) Predicate(predicate func() bool, message string, args ...interface{}) {
+func (v *Verification) Predicate(predicate func() bool, message string, args ...interface{}) {
 	v.checked = false
 	if v.err != nil {
 		return
@@ -77,7 +77,7 @@ func (v *verification) Predicate(predicate func() bool, message string, args ...
 	v.err = fmt.Errorf(message, args...)
 }
 
-func (v *verification) That(positiveCondition bool, message string, args ...interface{}) {
+func (v *Verification) That(positiveCondition bool, message string, args ...interface{}) {
 	v.checked = false
 	if v.err != nil {
 		return
@@ -88,15 +88,15 @@ func (v *verification) That(positiveCondition bool, message string, args ...inte
 	v.err = fmt.Errorf(message, args...)
 }
 
-func (v *verification) Nil(ref interface{}, message string, args ...interface{}) {
+func (v *Verification) Nil(ref interface{}, message string, args ...interface{}) {
 	v.That(ref == nil, message, args...)
 }
 
-func (v *verification) NotNil(ref interface{}, message string, args ...interface{}) {
+func (v *Verification) NotNil(ref interface{}, message string, args ...interface{}) {
 	v.That(ref != nil, message, args...)
 }
 
-func (v *verification) printCreationStack(writer io.Writer) {
+func (v *Verification) printCreationStack(writer io.Writer) {
 	frames := runtime.CallersFrames(v.creationStack)
 	for {
 		frame, more := frames.Next()
@@ -107,12 +107,12 @@ func (v *verification) printCreationStack(writer io.Writer) {
 	}
 }
 
-func failProcessOnUncheckedVerification(v *verification) {
+func failProcessOnUncheckedVerification(v *Verification) {
 	printWarningOnUncheckedVerification(v)
 	os.Exit(1)
 }
 
-func printWarningOnUncheckedVerification(v *verification) {
+func printWarningOnUncheckedVerification(v *Verification) {
 	if v.checked {
 		return
 	}
