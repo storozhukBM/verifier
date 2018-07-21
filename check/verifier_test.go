@@ -31,7 +31,7 @@ func TestVerifier_positive_conditions(t *testing.T) {
 		t.Errorf("unexpected error message: %s", verify.GetError())
 	}
 	if fmt.Sprintf("%s", verify) != "verification failure: expect error here" {
-		t.Errorf("unexpected verifier string represenation: %s", verify)
+		t.Errorf("unexpected verifier string representation: %s", verify)
 	}
 }
 
