@@ -88,14 +88,6 @@ func (v *Verification) That(positiveCondition bool, message string, args ...inte
 	v.err = fmt.Errorf(message, args...)
 }
 
-func (v *Verification) Nil(ref interface{}, message string, args ...interface{}) {
-	v.That(ref == nil, message, args...)
-}
-
-func (v *Verification) NotNil(ref interface{}, message string, args ...interface{}) {
-	v.That(ref != nil, message, args...)
-}
-
 func (v *Verification) printCreationStack(writer io.Writer) {
 	frames := runtime.CallersFrames(v.creationStack)
 	for {

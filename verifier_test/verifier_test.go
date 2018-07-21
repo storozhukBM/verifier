@@ -15,8 +15,6 @@ import (
 
 func TestVerifier_positive_conditions(t *testing.T) {
 	verify := verifier.New()
-	verify.Nil(nil, "should be positive")
-	verify.NotNil("", "definitely")
 	verify.That(rand.Float32() >= 0.0, "random should be positive")
 	verify.That(rand.Float32() < 1.0, "random should less then 1.0")
 	verify.That(true, "some other check with format %s; %d", "testCheck", 35)
@@ -69,7 +67,7 @@ func TestVerifier_positive_not_evaluate_after_failure(t *testing.T) {
 
 func TestVerifier_positive_panic_on_error(t *testing.T) {
 	verify := verifier.New()
-	verify.Nil("", "empty string is not nil")
+	verify.That(len("") != 0, "empty string is not nil")
 	defer func() {
 		panicObj := recover()
 		if panicObj == nil {
@@ -90,7 +88,7 @@ func TestVerifier_negative_unhandled_error(t *testing.T) {
 	defer verifier.SetUnhandledVerificationsWriter(os.Stdout)
 
 	verify := verifier.New()
-	verify.Nil("", "empty string is not nil")
+	verify.That(len("") != 0, "empty string is not nil")
 	runtime.GC()
 	time.Sleep(time.Second / 10)
 
@@ -109,7 +107,7 @@ func TestVerifier_negative_silent(t *testing.T) {
 	defer verifier.SetUnhandledVerificationsWriter(os.Stdout)
 
 	verify := verifier.Silent()
-	verify.Nil("", "empty string is not nil")
+	verify.That(len("") != 0, "empty string is not nil")
 	runtime.GC()
 	time.Sleep(time.Second / 10)
 

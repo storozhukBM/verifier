@@ -27,14 +27,14 @@ func Example() {
 
 func sellAlcohol(p *Person) error {
 	verify := verifier.New()
-	verify.NotNil(p, "person can't be nil")
-	verify.PanicOnError()
+	verify.That(p != nil, "person can't be nil")
+	verify.PanicOnError() // let's imagine that we don't want to tolerate such calls in our system
 	verify.That(p.age >= 21, "customer age should be 21 or higher, but yours: %d", p.age)
 	verify.That(p.hasLicense, "customer should have license")
 	if verify.GetError() != nil {
 		return verify.GetError()
 	}
 
-	fmt.Println("yes, you can have some alcohol")
+	fmt.Print("yes, you can have some alcohol")
 	return nil
 }
