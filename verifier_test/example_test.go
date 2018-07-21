@@ -1,8 +1,8 @@
 package verifier_test
 
 import (
-	"github.com/storozhukBM/verifier"
 	"fmt"
+	"github.com/storozhukBM/verifier"
 )
 
 type Person struct {
