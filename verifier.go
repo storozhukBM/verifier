@@ -100,6 +100,9 @@ func (v *Verification) printCreationStack(writer io.Writer) {
 }
 
 func failProcessOnUncheckedVerification(v *Verification) {
+	if v.checked {
+		return
+	}
 	printWarningOnUncheckedVerification(v)
 	os.Exit(1)
 }

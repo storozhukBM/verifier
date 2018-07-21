@@ -14,7 +14,7 @@ import (
 )
 
 func TestVerifier_positive_conditions(t *testing.T) {
-	verify := verifier.New()
+	verify := verifier.Offensive()
 	verify.That(rand.Float32() >= 0.0, "random should be positive")
 	verify.That(rand.Float32() < 1.0, "random should less then 1.0")
 	verify.That(true, "some other check with format %s; %d", "testCheck", 35)
@@ -22,6 +22,7 @@ func TestVerifier_positive_conditions(t *testing.T) {
 		t.Error("verifier should be empty")
 	}
 	verify.That(rand.Float32() < 0.0, "expect error %s", "here")
+	verify.That(rand.Float32() == 0.0, "should not have any deference")
 	if verify.GetError() == nil {
 		t.Fatal("verifier should be filled")
 	}
