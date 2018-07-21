@@ -1,16 +1,16 @@
 package check
 
 import (
-	"testing"
+	"bytes"
+	"fmt"
 	"github.com/storozhukBM/verifier"
 	"math/rand"
-	"fmt"
-	"runtime"
-	"time"
-	"bytes"
-	"strings"
 	"os"
+	"runtime"
+	"strings"
 	"sync"
+	"testing"
+	"time"
 )
 
 func TestVerifier_positive_conditions(t *testing.T) {
@@ -55,7 +55,6 @@ func TestVerifier_positive_not_evaluate_after_failure(t *testing.T) {
 		counter++
 		return true
 	}, "won't evaluate")
-
 
 	if verify.GetError() == nil {
 		t.Fatal("verifier should be filled")
@@ -122,7 +121,7 @@ func TestVerifier_negative_silent(t *testing.T) {
 
 type safeBuffer struct {
 	b bytes.Buffer
-	m  sync.Mutex
+	m sync.Mutex
 }
 
 func (s *safeBuffer) Write(p []byte) (n int, err error) {

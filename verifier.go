@@ -2,9 +2,9 @@ package verifier
 
 import (
 	"fmt"
-	"runtime"
 	"io"
 	"os"
+	"runtime"
 	"sync/atomic"
 	"unsafe"
 )
