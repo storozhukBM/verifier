@@ -1,4 +1,4 @@
-package check
+package verifier_test
 
 import (
 	"bytes"
