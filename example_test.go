@@ -1,4 +1,4 @@
-package verifier_test
+package verifier
 
 import (
 	"github.com/storozhukBM/verifier"
