@@ -91,13 +91,32 @@ func TestVerifier_negative_unhandled_error(t *testing.T) {
 	verify := verifier.New()
 	verify.That(len("") != 0, "empty string is not nil")
 	runtime.GC()
-	time.Sleep(time.Second / 10)
+	time.Sleep(10 * time.Millisecond)
 
 	resultBuffer := localBuffer.String()
 	if len(resultBuffer) == 0 {
 		t.Fatal("unhandled error not found")
 	}
-	if !strings.HasPrefix(resultBuffer, "[ERROR] found verification with unhandled error: empty string is not nil") {
+	if !strings.HasPrefix(resultBuffer, "[ERROR] found unhandled verification: verification failure: empty string is not nil") {
+		t.Fatalf("unexpected verifier buffer: %s", resultBuffer)
+	}
+}
+
+func TestVerifier_negative_unhandled_success(t *testing.T) {
+	localBuffer := &safeBuffer{}
+	verifier.SetUnhandledVerificationsWriter(localBuffer)
+	defer verifier.SetUnhandledVerificationsWriter(os.Stdout)
+
+	verify := verifier.New()
+	verify.That(true, "empty string is not nil")
+	runtime.GC()
+	time.Sleep(10 * time.Millisecond)
+
+	resultBuffer := localBuffer.String()
+	if len(resultBuffer) == 0 {
+		t.Fatal("unhandled error not found")
+	}
+	if !strings.HasPrefix(resultBuffer, "[ERROR] found unhandled verification: verification success") {
 		t.Fatalf("unexpected verifier buffer: %s", resultBuffer)
 	}
 }
@@ -110,7 +129,7 @@ func TestVerifier_negative_silent(t *testing.T) {
 	verify := verifier.Silent()
 	verify.That(len("") != 0, "empty string is not nil")
 	runtime.GC()
-	time.Sleep(time.Second / 10)
+	time.Sleep(10 * time.Millisecond)
 
 	resultBuffer := localBuffer.String()
 	if len(resultBuffer) != 0 {

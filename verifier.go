@@ -140,7 +140,7 @@ func printWarningOnUncheckedVerification(v *Verify) {
 		return
 	}
 	writer := *(*io.Writer)(atomic.LoadPointer(&verificationsWriter))
-	fmt.Fprintf(writer, "[ERROR] found verification with unhandled error: %s\n", v.err.Error())
+	fmt.Fprintf(writer, "[ERROR] found unhandled verification: %s\n", v)
 	fmt.Fprint(writer, "verification was created here:\n")
 	v.printCreationStack(writer)
 }

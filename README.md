@@ -41,6 +41,29 @@ if verify.GetError() != nil {
 }
 ```
 
+It also can help you to track down unchecked verifiers when you forget to do it 
+```go
+verify := verifier.New()
+verify.That(user.HashPermission(READ, ACCOUNTS), "use has no permission to read accounts")
+```
+
+In this example we have forgot to check verifier using verify.GetError() and
+after some time you'll see in your log such error:
+```
+[ERROR] found unhandled verification: verification failure: empty string is not nil
+		verification was created here:
+		github.com/storozhukBM/verifier_test.TestVerifier
+			/Users/bogdanstorozhuk/verification-lib/src/github.com/storozhukBM/verifier/verifier_test.go:91
+		testing.tRunner
+			/usr/local/Cellar/go/1.10.2/libexec/src/testing/testing.go:777
+		runtime.goexit
+			/usr/local/Cellar/go/1.10.2/libexec/src/runtime/asm_amd64.s:2361
+```
+
+If you don't want/need such tracking use `verifier.Silent()` function to create your verifiers.
+You can also redirect output from this package using `verifier.SetUnhandledVerificationsWriter(io.Writer)` method.
+
+
 
 ##### License
 Copyright 2018 Bohdan Storozhuk
