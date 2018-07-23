@@ -1,6 +1,7 @@
 package verifier
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -16,22 +17,12 @@ var verificationsWriter = unsafe.Pointer(&os.Stdout)
 // If you forget to check internal error, using `GetError` or `PanicOnError` methods,
 // it will write error message to UnhandledVerificationsWriter (default: os.Stdout).
 // This mechanism will help you track down possible unhandled verifications.
-// If you don't wan't to track anything, create verifier with Silent() function.
+// If you don't wan't to track anything, create zero verifier `Verify{}`.
 func New() *Verify {
 	v := &Verify{
 		creationStack: captureCreationStack(),
-		checked:       false,
 	}
 	runtime.SetFinalizer(v, printWarningOnUncheckedVerification)
-	return v
-}
-
-// Creates verification instance without any tracking features.
-// It's silent about unhandled verifications.
-func Silent() *Verify {
-	v := &Verify{
-		checked: false,
-	}
 	return v
 }
 
@@ -45,7 +36,6 @@ func Silent() *Verify {
 func Offensive() *Verify {
 	v := &Verify{
 		creationStack: captureCreationStack(),
-		checked:       false,
 	}
 	runtime.SetFinalizer(v, failProcessOnUncheckedVerification)
 	return v
@@ -67,6 +57,9 @@ type Verify struct {
 // using message argument as format in fmt.Errorf(message, args...).
 // After the first failed verification all others won't count and predicates won't be evaluated.
 func (v *Verify) That(positiveCondition bool, message string, args ...interface{}) {
+	if v == nil {
+		return
+	}
 	v.checked = false
 	if v.err != nil {
 		return
@@ -83,6 +76,9 @@ func (v *Verify) That(positiveCondition bool, message string, args ...interface{
 // using message argument as format in fmt.Errorf(message, args...).
 // After the first failed verification all others won't count and predicates won't be evaluated.
 func (v *Verify) Predicate(predicate func() bool, message string, args ...interface{}) {
+	if v == nil {
+		return
+	}
 	v.checked = false
 	if v.err != nil {
 		return
@@ -95,6 +91,9 @@ func (v *Verify) Predicate(predicate func() bool, message string, args ...interf
 
 // GetError extracts error from internal state to check if there where any during verification process.
 func (v *Verify) GetError() error {
+	if v == nil {
+		return errors.New("verifier instance is nil")
+	}
 	v.checked = true
 	return v.err
 }
@@ -102,6 +101,9 @@ func (v *Verify) GetError() error {
 // PanicOnError panics if there is an error in internal state.
 // Created for people who adopt offensive programming(https://en.wikipedia.org/wiki/Offensive_programming).
 func (v *Verify) PanicOnError() {
+	if v == nil {
+		panic("verifier instance is nil")
+	}
 	v.checked = true
 	if v.err != nil {
 		panic("verification failure: " + v.err.Error())
@@ -110,6 +112,9 @@ func (v *Verify) PanicOnError() {
 
 // String represents verification and it's status as string type.
 func (v *Verify) String() string {
+	if v == nil {
+		return "nil"
+	}
 	if v.err == nil {
 		return "verification success"
 	}

@@ -60,9 +60,8 @@ after some time you'll see in your log such error:
     /usr/local/Cellar/go/1.10.2/libexec/src/runtime/asm_amd64.s:2361
 ```
 
-If you don't want/need such tracking use `verifier.Silent()` function to create your verifiers.
+If you don't want/need such tracking use zero verifier `verifier.Verify{}`.
 You can also redirect output from this package using `verifier.SetUnhandledVerificationsWriter(io.Writer)` method.
----
 
 ##### License
 Copyright 2018 Bohdan Storozhuk

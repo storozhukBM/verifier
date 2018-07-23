@@ -2,7 +2,6 @@ package verifier_test
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/storozhukBM/verifier"
 	"math/rand"
 	"os"
@@ -29,7 +28,7 @@ func TestVerifier_positive_conditions(t *testing.T) {
 	if verify.GetError().Error() != "expect error here" {
 		t.Errorf("unexpected error message: %s", verify.GetError())
 	}
-	if fmt.Sprintf("%s", verify) != "verification failure: expect error here" {
+	if verify.String() != "verification failure: expect error here" {
 		t.Errorf("unexpected verifier string representation: %s", verify)
 	}
 }
@@ -126,7 +125,7 @@ func TestVerifier_negative_silent(t *testing.T) {
 	verifier.SetUnhandledVerificationsWriter(localBuffer)
 	defer verifier.SetUnhandledVerificationsWriter(os.Stdout)
 
-	verify := verifier.Silent()
+	verify := verifier.Verify{}
 	verify.That(len("") != 0, "empty string is not nil")
 	runtime.GC()
 	time.Sleep(10 * time.Millisecond)
@@ -135,6 +134,41 @@ func TestVerifier_negative_silent(t *testing.T) {
 	if len(resultBuffer) != 0 {
 		t.Fatalf("unhandled printed something: %s", resultBuffer)
 	}
+}
+
+func TestVerifier_negative_nil_error(t *testing.T) {
+	var verify *verifier.Verify
+	verify.That(len("") != 0, "empty string is not nil")
+	if verify.GetError() == nil {
+		t.Fatal("verifier should be filled")
+	}
+	if verify.GetError().Error() != "verifier instance is nil" {
+		t.Errorf("unexpected error message: %s", verify.GetError())
+	}
+	if verify.String() != "nil" {
+		t.Errorf("unexpected verifier string representation: %s", verify)
+	}
+}
+
+func TestVerifier_negative_nil_panic(t *testing.T) {
+	var verify *verifier.Verify
+	counter := 0
+	verify.Predicate(func() bool {
+		counter++
+		return false
+	}, "should not evaluate")
+	defer func() {
+		panicObj := recover()
+		if panicObj == nil {
+			t.Fatal("verifier should have panic")
+		}
+		if panicObj != "verifier instance is nil" {
+			t.Errorf("unexpected error message: %s", panicObj)
+		}
+
+	}()
+
+	verify.PanicOnError()
 }
 
 type safeBuffer struct {
