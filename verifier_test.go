@@ -2,7 +2,6 @@ package verifier_test
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/storozhukBM/verifier"
 	"math/rand"
 	"os"
