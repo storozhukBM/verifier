@@ -29,7 +29,7 @@ func TestVerifier_positive_conditions(t *testing.T) {
 	if verify.GetError().Error() != "expect error here" {
 		t.Errorf("unexpected error message: %s", verify.GetError())
 	}
-	if fmt.Sprintf("%s", verify) != "verification failure: expect error here" {
+	if verify.String() != "verification failure: expect error here" {
 		t.Errorf("unexpected verifier string representation: %s", verify)
 	}
 }
@@ -146,7 +146,7 @@ func TestVerifier_negative_nil_error(t *testing.T) {
 	if verify.GetError().Error() != "verifier instance is nil" {
 		t.Errorf("unexpected error message: %s", verify.GetError())
 	}
-	if fmt.Sprintf("%s", verify) != "nil" {
+	if verify.String() != "nil" {
 		t.Errorf("unexpected verifier string representation: %s", verify)
 	}
 }
