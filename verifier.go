@@ -51,23 +51,47 @@ type Verify struct {
 	checked       bool
 }
 
+// WithError verifies condition passed as first argument.
+// If `positiveCondition == true`, verification will proceed for other checks.
+// If `positiveCondition == false`, internal state will be filled with error specified as second argument.
+// After the first failed verification all others won't count and predicates won't be evaluated.
+func (v *Verify) WithError(positiveCondition bool, err error) *Verify {
+	vObj := v
+	if v == nil {
+		vObj = &Verify{}
+	}
+
+	vObj.checked = false
+	if vObj.err != nil {
+		return vObj
+	}
+	if positiveCondition {
+		return vObj
+	}
+	vObj.err = err
+	return vObj
+}
+
 // That verifies condition passed as first argument.
 // If `positiveCondition == true`, verification will proceed for other checks.
 // If `positiveCondition == false`, internal state will be filled with error,
 // using message argument as format in fmt.Errorf(message, args...).
 // After the first failed verification all others won't count and predicates won't be evaluated.
-func (v *Verify) That(positiveCondition bool, message string, args ...interface{}) {
+func (v *Verify) That(positiveCondition bool, message string, args ...interface{}) *Verify {
+	vObj := v
 	if v == nil {
-		return
+		vObj = &Verify{}
 	}
-	v.checked = false
-	if v.err != nil {
-		return
+
+	vObj.checked = false
+	if vObj.err != nil {
+		return vObj
 	}
 	if positiveCondition {
-		return
+		return vObj
 	}
-	v.err = fmt.Errorf(message, args...)
+	vObj.err = fmt.Errorf(message, args...)
+	return vObj
 }
 
 // That evaluates predicate passed as first argument.
@@ -75,18 +99,20 @@ func (v *Verify) That(positiveCondition bool, message string, args ...interface{
 // If `predicate() == false`, internal state will be filled with error,
 // using message argument as format in fmt.Errorf(message, args...).
 // After the first failed verification all others won't count and predicates won't be evaluated.
-func (v *Verify) Predicate(predicate func() bool, message string, args ...interface{}) {
+func (v *Verify) Predicate(predicate func() bool, message string, args ...interface{}) *Verify {
+	vObj := v
 	if v == nil {
-		return
+		vObj = &Verify{}
 	}
-	v.checked = false
-	if v.err != nil {
-		return
+	vObj.checked = false
+	if vObj.err != nil {
+		return vObj
 	}
 	if predicate() {
-		return
+		return vObj
 	}
-	v.err = fmt.Errorf(message, args...)
+	vObj.err = fmt.Errorf(message, args...)
+	return vObj
 }
 
 // GetError extracts error from internal state to check if there where any during verification process.

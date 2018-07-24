@@ -2,6 +2,7 @@ package verifier_test
 
 import (
 	"bytes"
+	"errors"
 	"github.com/storozhukBM/verifier"
 	"math/rand"
 	"os"
@@ -13,10 +14,11 @@ import (
 )
 
 func TestVerifier_positive_conditions(t *testing.T) {
-	verify := verifier.Offensive()
-	verify.That(rand.Float32() >= 0.0, "random should be positive")
-	verify.That(rand.Float32() < 1.0, "random should less then 1.0")
-	verify.That(true, "some other check with format %s; %d", "testCheck", 35)
+	var verify *verifier.Verify
+	verify = verify.
+		WithError(rand.Float32() < 1.0, errors.New("random should less then 1.0")).
+		That(rand.Float32() >= 0.0, "random should be positive").
+		That(true, "some other check with format %s; %d", "testCheck", 35)
 	if verify.GetError() != nil {
 		t.Error("verifier should be empty")
 	}
@@ -26,6 +28,30 @@ func TestVerifier_positive_conditions(t *testing.T) {
 		t.Fatal("verifier should be filled")
 	}
 	if verify.GetError().Error() != "expect error here" {
+		t.Errorf("unexpected error message: %s", verify.GetError())
+	}
+	if verify.String() != "verification failure: expect error here" {
+		t.Errorf("unexpected verifier string representation: %s", verify)
+	}
+}
+
+func TestVerifier_positive_conditions_with_error(t *testing.T) {
+	verify := verifier.Offensive()
+	verificationErr := verify.
+		WithError(rand.Float32() >= 0.0, errors.New("random should be positive")).
+		That(rand.Float32() < 1.0, "random should less then 1.0").
+		That(true, "some other check with format %s; %d", "testCheck", 35).
+		GetError()
+	if verificationErr != nil {
+		t.Error("verifier should be empty")
+	}
+	expectedErr := errors.New("expect error here")
+	verify.WithError(rand.Float32() < 0.0, expectedErr)
+	verify.WithError(rand.Float32() == 0.0, errors.New("should not have any deference"))
+	if verify.GetError() == nil {
+		t.Fatal("verifier should be filled")
+	}
+	if verify.GetError() != expectedErr {
 		t.Errorf("unexpected error message: %s", verify.GetError())
 	}
 	if verify.String() != "verification failure: expect error here" {
