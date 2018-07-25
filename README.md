@@ -16,10 +16,19 @@ This small library is built on error handling pattern described by Rob Pike in G
 
 It helps you quickly transform code from this
 ```go
+if transfer == nil {
+	return nil, errors.New("transfer can't be nil")
+}
 if person == nil {
 	return nil, errors.New("person can't be nil")
 }
-if len(person.name) == "" {
+if transfer.Destination == "" {
+	return nil, errors.New("transfer destination can't be empty")
+}
+if transfer.Amount > 0 {
+	return nil, errors.New("transfer amount should be greater than zero")
+}
+if len(person.Name) == "" {
 	return nil, errors.New("name can't be empty")
 }
 if person.age < 21 {
@@ -32,8 +41,14 @@ if !person.hasLicense {
 to this
 ```go
 verify := verifier.New()
+verify.That(transfer != nil, "transfer can't be nil")
 verify.That(person != nil, "person can't be nil")
-verify.That(person.name != "", "name can't be empty")
+if verify.GetError() != nil {
+	return nil, verify.GetError()
+}
+verify.That(transfer.Destination != "", "transfer destination can't be empty")
+verify.That(transfer.Amount <= 0, "transfer amount should be greater than zer")
+verify.That(person.Name != "", "name can't be empty")
 verify.That(person.age >= 21, "age should be 21 or higher, but yours: %d", p.age)
 verify.That(person.hasLicense, "customer should have license")
 if verify.GetError() != nil {
