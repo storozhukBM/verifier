@@ -28,7 +28,7 @@ if transfer.Destination == "" {
 if transfer.Amount <= 0 {
 	return nil, errors.New("transfer amount should be greater than zero")
 }
-if len(person.Name) == "" {
+if person.Name == "" {
 	return nil, errors.New("name can't be empty")
 }
 if person.age < 21 {
