@@ -2,7 +2,7 @@
 
 Package `verifier` provides simple [defensive programing](https://en.wikipedia.org/wiki/Defensive_programming) primitives.
 
-Some software have higher than usual requirements for availability, safety or security.
+Some software has higher than usual requirements for availability, safety or security.
 Very often in such projects people practice pragmatic paranoia with specific set of rules.
 For example: each public function on any level of your application should check all arguments passed to it.
 It obviously includes checking for nil pointer but also all sub-fields, states, conditions 
