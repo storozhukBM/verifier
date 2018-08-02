@@ -3,13 +3,10 @@
 Package `verifier` provides simple [defensive programing](https://en.wikipedia.org/wiki/Defensive_programming) primitives.
 
 Some software has higher than usual requirements for availability, safety or security.
-Very often in such projects people practice pragmatic paranoia with specific set of rules.
-For example: each public function on any level of your application should check all arguments passed to it.
-It obviously includes checking for nil pointer but also all sub-fields, states, conditions 
-that your code will use, expect or rely on.
+Often in such projects people practice pragmatic paranoia with specific set of rules.
+For example: each public function on any level of your application should check all arguments passed to it. Obviously checking for nil pointers, but also states and conditions, that it will rely on.
 
-When you use such approaches your code can quickly become a mess and it becomes hard to distinguish between 
-verification code and underlying business logic.
+When you use such approaches your code can become a mess. And sometimes it's hard to distinguish between verification code and underlying business logic.
 
 This small library is built on error handling pattern described by Rob Pike in Go blog called 
 [Errors are values](https://blog.golang.org/errors-are-values).
