@@ -28,10 +28,10 @@ if transfer.Amount <= 0 {
 if person.Name == "" {
 	return nil, errors.New("name can't be empty")
 }
-if person.age < 21 {
-	return nil, fmt.Errorf("age should be 21 or higher, but yours: %d", p.age)
+if person.Age < 21 {
+	return nil, fmt.Errorf("age should be 21 or higher, but yours: %d", person.Age)
 }
-if !person.hasLicense {
+if !person.HasLicense {
 	return nil, errors.New("customer should have license")
 }
 ```
@@ -46,8 +46,8 @@ if verify.GetError() != nil {
 verify.That(transfer.Destination != "", "transfer destination can't be empty")
 verify.That(transfer.Amount > 0, "transfer amount should be greater than zero")
 verify.That(person.Name != "", "name can't be empty")
-verify.That(person.age >= 21, "age should be 21 or higher, but yours: %d", p.age)
-verify.That(person.hasLicense, "customer should have license")
+verify.That(person.Age >= 21, "age should be 21 or higher, but yours: %d", person.Age)
+verify.That(person.HasLicense, "customer should have license")
 if verify.GetError() != nil {
 	return nil, verify.GetError()
 }
