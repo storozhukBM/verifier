@@ -144,6 +144,12 @@ func TestVerifier_negative_unhandled_success(t *testing.T) {
 	if !strings.HasPrefix(resultBuffer, "[ERROR] found unhandled verification: verification success") {
 		t.Fatalf("unexpected verifier buffer: %s", resultBuffer)
 	}
+	verifier.SetUnhandledVerificationsWriter(nil)
+
+	verify = verifier.New()
+	verify.That(true, "empty string is not nil")
+	runtime.GC()
+	time.Sleep(10 * time.Millisecond)
 }
 
 func TestVerifier_negative_silent(t *testing.T) {
