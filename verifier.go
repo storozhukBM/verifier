@@ -7,10 +7,7 @@ import (
 	"os"
 	"runtime"
 	"sync/atomic"
-	"unsafe"
 )
-
-var verificationsWriter = unsafe.Pointer(&os.Stdout)
 
 // New creates verification instance (recommended).
 // It tracks verification state.
@@ -166,24 +163,37 @@ func failProcessOnUncheckedVerification(v *Verify) {
 	os.Exit(1)
 }
 
-func printWarningOnUncheckedVerification(v *Verify) {
-	if v.checked {
-		return
-	}
-	writer := *(*io.Writer)(atomic.LoadPointer(&verificationsWriter))
-	fmt.Fprintf(writer, "[ERROR] found unhandled verification: %s\n", v)
-	fmt.Fprint(writer, "verification was created here:\n")
-	v.printCreationStack(writer)
-}
-
 func captureCreationStack() []uintptr {
 	var rawStack [32]uintptr
 	numberOfFrames := runtime.Callers(3, rawStack[:])
 	return rawStack[:numberOfFrames]
 }
 
+type writerWrapper struct {
+	value io.Writer
+}
+
+var verificationsWriter atomic.Value
+
 // SetUnhandledVerificationsWriter gives you ability to override UnhandledVerificationsWriter (default: os.Stdout).
 func SetUnhandledVerificationsWriter(w io.Writer) {
-	newWriter := unsafe.Pointer(&w)
-	atomic.StorePointer(&verificationsWriter, newWriter)
+	verificationsWriter.Store(writerWrapper{w})
+}
+
+func init() {
+	SetUnhandledVerificationsWriter(os.Stdout)
+}
+
+func printWarningOnUncheckedVerification(v *Verify) {
+	if v.checked {
+		return
+	}
+	rawWriter := verificationsWriter.Load()
+	if rawWriter == nil {
+		rawWriter = writerWrapper{os.Stdout}
+	}
+	writer := rawWriter.(writerWrapper).value
+	fmt.Fprintf(writer, "[ERROR] found unhandled verification: %s\n", v)
+	fmt.Fprint(writer, "verification was created here:\n")
+	v.printCreationStack(writer)
 }
