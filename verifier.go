@@ -189,7 +189,7 @@ func printWarningOnUncheckedVerification(v *Verify) {
 		return
 	}
 	rawWriter := verificationsWriter.Load()
-	if rawWriter == nil {
+	if rawWriter == nil || rawWriter.(writerWrapper).value == nil {
 		rawWriter = writerWrapper{os.Stdout}
 	}
 	writer := rawWriter.(writerWrapper).value
