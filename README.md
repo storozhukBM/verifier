@@ -75,6 +75,12 @@ after some time you'll see in your log such error:
 If you don't want/need such tracking use zero verifier `verifier.Verify{}`.
 You can also redirect output from this package using `verifier.SetUnhandledVerificationsWriter(io.Writer)` method.
 
+---
+##### There is other libraries that can be useful when you employ defensive programming style
+* [vala](https://github.com/kat-co/vala)
+* [govalidate](https://github.com/tonyhb/govalidate)
+
+---
 ##### License
 Copyright 2018 Bohdan Storozhuk
 
