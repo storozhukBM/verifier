@@ -3,14 +3,17 @@ package verifier_test
 import (
 	"bytes"
 	"errors"
-	"github.com/storozhukBM/verifier"
+	"fmt"
 	"math/rand"
 	"os"
+	"reflect"
 	"runtime"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/storozhukBM/verifier"
 )
 
 func TestVerifier_positive_conditions(t *testing.T) {
@@ -201,6 +204,36 @@ func TestVerifier_negative_nil_panic(t *testing.T) {
 	}()
 
 	verify.PanicOnError()
+}
+
+type TestError struct {
+	message string
+}
+
+func NewTestError(msg string, args ...interface{}) error {
+	return TestError{
+		message: fmt.Sprintf(msg, args...),
+	}
+}
+
+func (err TestError) Error() string {
+	return err.message
+}
+
+func TestVerifies_WithErrorFactory(test *testing.T) {
+
+	var tf = func(name string, ver *verifier.Verify, err error) {
+		test.Run(name, func(test *testing.T) {
+			var got = ver.That(false, "test error message").GetError()
+			if reflect.TypeOf(err) != reflect.TypeOf(got) {
+				test.Fatalf("got error of invalid type %T", got)
+			}
+		})
+	}
+
+	tf("empty Verifier", &verifier.Verify{}, fmt.Errorf(""))
+	tf("verifier created with New factory", verifier.New(), fmt.Errorf(""))
+	tf("verifier with TestError factory", verifier.New().WithErrFactory(NewTestError), TestError{})
 }
 
 type safeBuffer struct {
