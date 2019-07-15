@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"os/exec"
 	"reflect"
 	"runtime"
 	"strings"
@@ -234,6 +235,31 @@ func TestVerifies_WithErrorFactory(test *testing.T) {
 	tf("empty Verifier", &verifier.Verify{}, fmt.Errorf(""))
 	tf("verifier created with New factory", verifier.New(), fmt.Errorf(""))
 	tf("verifier with TestError factory", verifier.New().WithErrFactory(NewTestError), TestError{})
+}
+
+// Testing Offensive verifier, which crashes programm if GCed unchecked.
+// Idea: https://talks.golang.org/2014/testing.slide
+func TestOffensive(test *testing.T) {
+	if os.Getenv("BE_CRASHER") == "1" {
+		var verifiers = make([]*verifier.Verify, 10000)
+		for i := range verifiers {
+			verifiers[i] = verifier.
+				Offensive().
+				That(false, "test error message %d", i)
+		}
+		for i := range verifiers {
+			verifiers[i] = nil
+		}
+		runtime.GC()
+		return
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=TestCrasher", "-race")
+	cmd.Env = append(os.Environ(), "BE_CRASHER=1")
+	err := cmd.Run()
+	if e, ok := err.(*exec.ExitError); ok && !e.Success() {
+		return
+	}
+	test.Fatalf("process ran with err %v, want exit status 1", err)
 }
 
 type safeBuffer struct {
