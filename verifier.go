@@ -81,7 +81,7 @@ func (v *Verify) WithError(positiveCondition bool, err error) *Verify {
 // That verifies condition passed as first argument.
 // If `positiveCondition == true`, verification will proceed for other checks.
 // If `positiveCondition == false`, internal state will be filled with error,
-// using message argument as format in fmt.Errorf(message, args...).
+// using message argument as format in error factory func(message, args...) (default: fmt.Errorf).
 // After the first failed verification all others won't count and predicates won't be evaluated.
 func (v *Verify) That(positiveCondition bool, message string, args ...interface{}) *Verify {
 	vObj := v
@@ -102,7 +102,7 @@ func (v *Verify) That(positiveCondition bool, message string, args ...interface{
 // That evaluates predicate passed as first argument.
 // If `predicate() == true`, verification will proceed for other checks.
 // If `predicate() == false`, internal state will be filled with error,
-// using message argument as format in fmt.Errorf(message, args...).
+// using message argument as format in error factory func(message, args...) (default: fmt.Errorf).
 // After the first failed verification all others won't count and predicates won't be evaluated.
 func (v *Verify) Predicate(predicate func() bool, message string, args ...interface{}) *Verify {
 	vObj := v
