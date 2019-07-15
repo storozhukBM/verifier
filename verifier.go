@@ -18,8 +18,16 @@ import (
 func New() *Verify {
 	v := &Verify{
 		creationStack: captureCreationStack(),
+		errFactory:    fmt.Errorf,
 	}
 	runtime.SetFinalizer(v, printWarningOnUncheckedVerification)
+	return v
+}
+
+// WithErrFactory sets error construction function (default: fmt.Errorf).
+// Use it to set custom error type of error, returned by Verify.GetError().
+func (v *Verify) WithErrFactory(factory func(string, ...interface{}) error) *Verify {
+	v.errFactory = factory
 	return v
 }
 
@@ -45,6 +53,7 @@ func Offensive() *Verify {
 type Verify struct {
 	creationStack []uintptr
 	err           error
+	errFactory    func(string, ...interface{}) error
 	checked       bool
 }
 
@@ -72,14 +81,13 @@ func (v *Verify) WithError(positiveCondition bool, err error) *Verify {
 // That verifies condition passed as first argument.
 // If `positiveCondition == true`, verification will proceed for other checks.
 // If `positiveCondition == false`, internal state will be filled with error,
-// using message argument as format in fmt.Errorf(message, args...).
+// using message argument as format in error factory func(message, args...) (default: fmt.Errorf).
 // After the first failed verification all others won't count and predicates won't be evaluated.
 func (v *Verify) That(positiveCondition bool, message string, args ...interface{}) *Verify {
 	vObj := v
 	if v == nil {
 		vObj = &Verify{}
 	}
-
 	vObj.checked = false
 	if vObj.err != nil {
 		return vObj
@@ -87,14 +95,14 @@ func (v *Verify) That(positiveCondition bool, message string, args ...interface{
 	if positiveCondition {
 		return vObj
 	}
-	vObj.err = fmt.Errorf(message, args...)
+	vObj.err = vObj.errorf(message, args...)
 	return vObj
 }
 
 // That evaluates predicate passed as first argument.
 // If `predicate() == true`, verification will proceed for other checks.
 // If `predicate() == false`, internal state will be filled with error,
-// using message argument as format in fmt.Errorf(message, args...).
+// using message argument as format in error factory func(message, args...) (default: fmt.Errorf).
 // After the first failed verification all others won't count and predicates won't be evaluated.
 func (v *Verify) Predicate(predicate func() bool, message string, args ...interface{}) *Verify {
 	vObj := v
@@ -108,7 +116,7 @@ func (v *Verify) Predicate(predicate func() bool, message string, args ...interf
 	if predicate() {
 		return vObj
 	}
-	vObj.err = fmt.Errorf(message, args...)
+	vObj.err = vObj.errorf(message, args...)
 	return vObj
 }
 
@@ -142,6 +150,13 @@ func (v *Verify) String() string {
 		return "verification success"
 	}
 	return "verification failure: " + v.err.Error()
+}
+
+func (v *Verify) errorf(message string, args ...interface{}) error {
+	if v.errFactory == nil {
+		v.errFactory = fmt.Errorf
+	}
+	return v.errFactory(message, args...)
 }
 
 func (v *Verify) printCreationStack(writer io.Writer) {
