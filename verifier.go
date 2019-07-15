@@ -18,8 +18,16 @@ import (
 func New() *Verify {
 	v := &Verify{
 		creationStack: captureCreationStack(),
+		errFactory:    fmt.Errorf,
 	}
 	runtime.SetFinalizer(v, printWarningOnUncheckedVerification)
+	return v
+}
+
+// WithErrFactory sets error construction function (default: fmt.Errorf).
+// Use it to set custom error type of error, returned by Verify.GetError().
+func (v *Verify) WithErrFactory(factory func(string, ...interface{}) error) *Verify {
+	v.errFactory = factory
 	return v
 }
 
@@ -45,6 +53,7 @@ func Offensive() *Verify {
 type Verify struct {
 	creationStack []uintptr
 	err           error
+	errFactory    func(string, ...interface{}) error
 	checked       bool
 }
 
@@ -79,7 +88,6 @@ func (v *Verify) That(positiveCondition bool, message string, args ...interface{
 	if v == nil {
 		vObj = &Verify{}
 	}
-
 	vObj.checked = false
 	if vObj.err != nil {
 		return vObj
@@ -87,7 +95,7 @@ func (v *Verify) That(positiveCondition bool, message string, args ...interface{
 	if positiveCondition {
 		return vObj
 	}
-	vObj.err = fmt.Errorf(message, args...)
+	vObj.err = vObj.errorf(message, args...)
 	return vObj
 }
 
@@ -108,7 +116,7 @@ func (v *Verify) Predicate(predicate func() bool, message string, args ...interf
 	if predicate() {
 		return vObj
 	}
-	vObj.err = fmt.Errorf(message, args...)
+	vObj.err = vObj.errorf(message, args...)
 	return vObj
 }
 
@@ -142,6 +150,13 @@ func (v *Verify) String() string {
 		return "verification success"
 	}
 	return "verification failure: " + v.err.Error()
+}
+
+func (v *Verify) errorf(message string, args ...interface{}) error {
+	if v.errFactory == nil {
+		v.errFactory = fmt.Errorf
+	}
+	return v.errFactory(message, args...)
 }
 
 func (v *Verify) printCreationStack(writer io.Writer) {
