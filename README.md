@@ -56,7 +56,7 @@ if verify.GetError() != nil {
 It also can help you to track down unchecked verifiers when you forget to do it 
 ```go
 verify := verifier.New()
-verify.That(user.HashPermission(READ, ACCOUNTS), "user has no permission to read accounts")
+verify.That(user.HasPermission(READ, ACCOUNTS), "user has no permission to read accounts")
 ```
 
 In this example we have forgot to check verifier using verify.GetError() and
